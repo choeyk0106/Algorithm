@@ -27,12 +27,29 @@ except AttributeError:
         return QtGui.QApplication.translate(context, text, disambig)
 
 class Order:
-        Americano = 0
-        CaffeLatte = 0
-        Cappuccino = 0
-        CaffeMocha = 0
-        CaramelMacchiato = 0
-        OrderNumber = 0
+    Americano = 0
+    CaffeLatte = 0
+    Cappuccino = 0
+    CaffeMocha = 0
+    CaramelMacchiato = 0
+
+    totalOfOrder = 0
+    OrderNumber = 0
+    def SetTotalOrder(self):
+        self.totalOfOrder = self.Americano + self.CaffeLatte + self.Cappuccino + self.CaffeMocha + self.CaramelMacchiato
+
+def DistributeOrder():
+    tempOrder = orderQueue[0];
+    sumOfCost = server1 + server2 + server3;
+    if(sumOfCost == 0):
+        for i in range(0, tempOrder.totalOfOrder):
+            if(tempOrder.Americano != 0):
+
+
+    else:
+        print("sum is 1")
+
+    orderQueue.pop()
 
 class TimerHandler:
     @staticmethod
