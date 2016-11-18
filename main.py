@@ -10,7 +10,11 @@ from PyQt4.QtCore import *
 import threading, time, random
 
 
-orderQueue = [ ]
+orderQueue = list();
+
+server1 = 0
+server2 = 0
+server3 = 0
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -44,8 +48,7 @@ def DistributeOrder():
     if(sumOfCost == 0):
         for i in range(0, tempOrder.totalOfOrder):
             if(tempOrder.Americano != 0):
-
-
+                print("uu")
     else:
         print("sum is 1")
 
