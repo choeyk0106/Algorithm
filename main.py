@@ -253,6 +253,10 @@ class Ui_MainWindow(object):
         self.spinBox_4.setProperty("value", 0)
         self.spinBox_5.setProperty("value", 0)
 
+        order.SetTotalOrder()
+        orderQueue.append(order)
+        DistributeOrder()
+
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
         item = self.tableWidget.verticalHeaderItem(0)
