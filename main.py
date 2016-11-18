@@ -6,6 +6,7 @@
 #
 # WARNING! All changes made in this file will be lost!
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtCore import *
 import threading, time, random
 
 
@@ -33,6 +34,45 @@ class Order:
         CaramelMacchiato = 0
         OrderNumber = 0
 
+class TimerHandler:
+    @staticmethod
+    def get_timer_by_list(progress_bar, time_list):
+        first_timer = TimerHandler(progress_bar, time_list[0])
+        post_timer = first_timer
+        for i in range(1, len(time_list)):
+            temp = TimerHandler(progress_bar, time_list[i])
+            post_timer.enroll_end_callback(temp.start)
+            post_timer = temp
+
+        return first_timer
+
+    def __init__(self, progress_bar, full_time):
+        self.timer = QTimer()
+        self.progress_bar = progress_bar
+        self.progress_cnt = 0
+        self.tick_time = full_time / 1000;
+        self.end_callback = None
+
+        def timer_callback():
+            self.progress_cnt += 0.1
+            self.progress_bar.setProperty("value", self.progress_cnt)
+
+            if self.progress_cnt >= 100:
+                self.timer.stop()
+                self.end()
+
+        self.timer.timeout.connect(timer_callback)
+
+    def start(self):
+        self.timer.start(self.tick_time)
+
+    def enroll_end_callback(self, callback):
+        self.end_callback = callback
+
+    def end(self):
+        self.progress_bar.setProperty("value", 0)
+        if self.end_callback is not None:
+            self.end_callback()
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -123,9 +163,9 @@ class Ui_MainWindow(object):
         self.pushButton.clicked.connect(self.spinBoxValue)
 
         # tag number box
-        self.lcdNumber = QtGui.QLCDNumber(self.centralwidget)
-        self.lcdNumber.setGeometry(QtCore.QRect(40, 320, 141, 71))
-        self.lcdNumber.setObjectName(_fromUtf8("lcdNumber"))
+        self.lcdNumber_1 = QtGui.QLCDNumber(self.centralwidget)
+        self.lcdNumber_1.setGeometry(QtCore.QRect(40, 320, 141, 71))
+        self.lcdNumber_1.setObjectName(_fromUtf8("lcdNumber_1"))
         self.lcdNumber_2 = QtGui.QLCDNumber(self.centralwidget)
         self.lcdNumber_2.setGeometry(QtCore.QRect(220, 320, 141, 71))
         self.lcdNumber_2.setObjectName(_fromUtf8("lcdNumber_2"))
@@ -134,10 +174,10 @@ class Ui_MainWindow(object):
         self.lcdNumber_3.setObjectName(_fromUtf8("lcdNumber_3"))
 
         # progressbar
-        self.progressBar = QtGui.QProgressBar(self.centralwidget)
-        self.progressBar.setGeometry(QtCore.QRect(60, 400, 121, 21))
-        self.progressBar.setProperty("value", 0)
-        self.progressBar.setObjectName(_fromUtf8("progressBar"))
+        self.progressBar_1 = QtGui.QProgressBar(self.centralwidget)
+        self.progressBar_1.setGeometry(QtCore.QRect(60, 400, 121, 21))
+        self.progressBar_1.setProperty("value", 0)
+        self.progressBar_1.setObjectName(_fromUtf8("progressBar_1"))
         self.progressBar_2 = QtGui.QProgressBar(self.centralwidget)
         self.progressBar_2.setGeometry(QtCore.QRect(240, 400, 121, 21))
         self.progressBar_2.setProperty("value", 24)
@@ -161,6 +201,22 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+        self.progress_timer_1 = TimerHandler.get_timer_by_list(self.progressBar_1, [1000, 1400, 2000, 4000, 3100])
+        self.progress_timer_1.start()
+
+        self.progress_timer_2 = TimerHandler.get_timer_by_list(self.progressBar_2, [1400, 2000, 1000, 4000, 3100])
+        self.progress_timer_2.start()
+
+        self.progress_timer_3 = TimerHandler.get_timer_by_list(self.progressBar_3, [2300, 4400, 5100, 2000, 1200])
+        self.progress_timer_3.start()
+
+    def download(self):
+        self.completed = 0
+
+        while (self.completed < 100):
+            self.completed += 0.0001
+            self.progress.setValue(self.completed)
 
     def spinBoxValue(self):
         order = Order()
