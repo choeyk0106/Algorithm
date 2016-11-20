@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file 'menu.ui'
 #
@@ -12,9 +12,7 @@ import threading, time, random
 
 orderQueue = list();
 
-server1 = 0
-server2 = 0
-server3 = 0
+server = [list(), list(), list()]
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -42,15 +40,78 @@ class Order:
     def SetTotalOrder(self):
         self.totalOfOrder = self.Americano + self.CaffeLatte + self.Cappuccino + self.CaffeMocha + self.CaramelMacchiato
 
+def WhoIsMinCostServer():
+    minCost = 9999
+    minServer = -1;
+
+    for i in range(0, 3):
+    	if(minCost > server[i]):
+            minCost = server[i]
+            minServer = i
+
+    return minServer    
+        
+            	
+
 def DistributeOrder():
     tempOrder = orderQueue[0];
-    sumOfCost = server1 + server2 + server3;
+    sumOfCost = server[0] + server[1] + server[2];
     if(sumOfCost == 0):
         for i in range(0, tempOrder.totalOfOrder):
+	    idx = WhoIsMinCostServer()
+
             if(tempOrder.Americano != 0):
-                print("uu")
+                server[idx].append(2)
+                tempOrder.Americano -= 1
+		continue
+
+            if(tempOrder.CaffeLatte != 0):
+                server[idx].append(3)
+                tempOrder.CaffeLatte -= 1
+		continue
+
+            if(tempOrder.Cappuccino != 0):
+                server[idx].append(4)
+                tempOrder.Cappuccino -= 1
+		continue
+
+            if(tempOrder.CaffeMocha != 0):
+                server[idx].append(5)
+                tempOrder.CaffeMocha -= 1
+		continue
+
+            if(tempOrder.CaramelMacchiato != 0):
+                server[idx].append(6)
+                tempOrder.CaramelMacchiato -= 1
+		continue
     else:
-        print("sum is 1")
+        for i in range(0, tempOrder.totalOfOrder):
+	    idx = WhoIsMinCostServer()
+
+            if(tempOrder.Americano != 0):
+                server[idx].append(2)
+                tempOrder.Americano -= 1
+		continue
+
+            if(tempOrder.CaffeLatte != 0):
+                server[idx].append(3)
+                tempOrder.CaffeLatte -= 1
+		continue
+
+            if(tempOrder.Cappuccino != 0):
+                server[idx].append(4)
+                tempOrder.Cappuccino -= 1
+		continue
+
+            if(tempOrder.CaffeMocha != 0):
+                server[idx].append(5)
+                tempOrder.CaffeMocha -= 1
+		continue
+
+            if(tempOrder.CaramelMacchiato != 0):
+                server[idx].append(6)
+                tempOrder.CaramelMacchiato -= 1
+		continue
 
     orderQueue.pop()
 
