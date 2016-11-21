@@ -9,10 +9,9 @@ from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import *
 import threading, time, random
 
-
 orderQueue = list();
 
-server = [list(), list(), list()]
+server = [[0],[0],[0]]
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -22,11 +21,14 @@ except AttributeError:
 
 try:
     _encoding = QtGui.QApplication.UnicodeUTF8
+
+
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
+
 
 class Order:
     Americano = 0
@@ -37,83 +39,76 @@ class Order:
 
     totalOfOrder = 0
     OrderNumber = 0
+
     def SetTotalOrder(self):
         self.totalOfOrder = self.Americano + self.CaffeLatte + self.Cappuccino + self.CaffeMocha + self.CaramelMacchiato
 
-def WhoIsMinCostServer():
+
+def WhoIsServerWhenZero():
     minCost = 9999
-    minServer = -1;
+    minServer = -1
+    maxCost = -1
+    maxServer = -1
 
     for i in range(0, 3):
-    	if(minCost > server[i]):
-            minCost = server[i]
+        if (maxCost < server[i][0]):
+            maxCost = server[i][0]
+            maxServer = i
+
+    for i in range(0, 3):
+        if (minCost > server[i][0] and i != maxServer):
+            minCost = server[i][0]
             minServer = i
 
-    return minServer    
-        
-            	
+    return minServer
+
 
 def DistributeOrder():
     tempOrder = orderQueue[0];
-    sumOfCost = server[0] + server[1] + server[2];
-    if(sumOfCost == 0):
-        for i in range(0, tempOrder.totalOfOrder):
-	    idx = WhoIsMinCostServer()
+    sumOfCost = server[0][0] + server[1][0] + server[2][0];
+    print(sumOfCost)
 
-            if(tempOrder.Americano != 0):
-                server[idx].append(2)
-                tempOrder.Americano -= 1
-		continue
+    for i in range(0, tempOrder.totalOfOrder):
+        idx = WhoIsServerWhenZero()
 
-            if(tempOrder.CaffeLatte != 0):
-                server[idx].append(3)
-                tempOrder.CaffeLatte -= 1
-		continue
+        if (tempOrder.Americano != 0):
+            server[idx].append(2000)
+            server[idx][0] += 2000
+            print(server[idx])
+            ui.startProgress()
+            tempOrder.Americano -= 1
+            continue
 
-            if(tempOrder.Cappuccino != 0):
-                server[idx].append(4)
-                tempOrder.Cappuccino -= 1
-		continue
+        if (tempOrder.CaffeLatte != 0):
+            server[idx].append(3000)
+            server[idx][0] += 3000
+            print(server[idx])
+            tempOrder.CaffeLatte -= 1
+            continue
 
-            if(tempOrder.CaffeMocha != 0):
-                server[idx].append(5)
-                tempOrder.CaffeMocha -= 1
-		continue
+        if (tempOrder.Cappuccino != 0):
+            server[idx].append(4000)
+            server[idx][0] += 4000
+            print(server[idx])
+            tempOrder.Cappuccino -= 1
+            continue
 
-            if(tempOrder.CaramelMacchiato != 0):
-                server[idx].append(6)
-                tempOrder.CaramelMacchiato -= 1
-		continue
-    else:
-        for i in range(0, tempOrder.totalOfOrder):
-	    idx = WhoIsMinCostServer()
+        if (tempOrder.CaffeMocha != 0):
+            server[idx].append(5000)
+            server[idx][0] += 5000
+            print(server[idx])
+            tempOrder.CaffeMocha -= 1
+            continue
 
-            if(tempOrder.Americano != 0):
-                server[idx].append(2)
-                tempOrder.Americano -= 1
-		continue
-
-            if(tempOrder.CaffeLatte != 0):
-                server[idx].append(3)
-                tempOrder.CaffeLatte -= 1
-		continue
-
-            if(tempOrder.Cappuccino != 0):
-                server[idx].append(4)
-                tempOrder.Cappuccino -= 1
-		continue
-
-            if(tempOrder.CaffeMocha != 0):
-                server[idx].append(5)
-                tempOrder.CaffeMocha -= 1
-		continue
-
-            if(tempOrder.CaramelMacchiato != 0):
-                server[idx].append(6)
-                tempOrder.CaramelMacchiato -= 1
-		continue
+        if (tempOrder.CaramelMacchiato != 0):
+            server[idx].append(6000)
+            server[idx][0] += 6000
+            print(server[idx])
+            tempOrder.CaramelMacchiato -= 1
+            continue
 
     orderQueue.pop()
+
 
 class TimerHandler:
     @staticmethod
@@ -155,6 +150,7 @@ class TimerHandler:
         if self.end_callback is not None:
             self.end_callback()
 
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
@@ -184,7 +180,8 @@ class Ui_MainWindow(object):
         self.tableWidget.setHorizontalHeaderItem(2, item)
         item = QtGui.QTableWidgetItem()
         item.setTextAlignment(QtCore.Qt.AlignCenter)
-        item.setFlags(QtCore.Qt.ItemIsSelectable|QtCore.Qt.ItemIsDragEnabled|QtCore.Qt.ItemIsUserCheckable|QtCore.Qt.ItemIsEnabled|QtCore.Qt.ItemIsTristate)
+        item.setFlags(
+            QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsTristate)
         self.tableWidget.setItem(0, 0, item)
         item = QtGui.QTableWidgetItem()
         item.setTextAlignment(QtCore.Qt.AlignCenter)
@@ -261,11 +258,11 @@ class Ui_MainWindow(object):
         self.progressBar_1.setObjectName(_fromUtf8("progressBar_1"))
         self.progressBar_2 = QtGui.QProgressBar(self.centralwidget)
         self.progressBar_2.setGeometry(QtCore.QRect(240, 400, 121, 21))
-        self.progressBar_2.setProperty("value", 24)
+        self.progressBar_2.setProperty("value", 0)
         self.progressBar_2.setObjectName(_fromUtf8("progressBar_2"))
         self.progressBar_3 = QtGui.QProgressBar(self.centralwidget)
         self.progressBar_3.setGeometry(QtCore.QRect(420, 400, 121, 21))
-        self.progressBar_3.setProperty("value", 24)
+        self.progressBar_3.setProperty("value", 0)
         self.progressBar_3.setObjectName(_fromUtf8("progressBar_3"))
 
         self.textBrowser_2 = QtGui.QTextBrowser(self.centralwidget)
@@ -283,13 +280,14 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-        self.progress_timer_1 = TimerHandler.get_timer_by_list(self.progressBar_1, [1000, 1400, 2000, 4000, 3100])
+    def startProgress(self):
+        self.progress_timer_1 = TimerHandler.get_timer_by_list(self.progressBar_1, server[0])
         self.progress_timer_1.start()
 
-        self.progress_timer_2 = TimerHandler.get_timer_by_list(self.progressBar_2, [1400, 2000, 1000, 4000, 3100])
+        self.progress_timer_2 = TimerHandler.get_timer_by_list(self.progressBar_2, server[1])
         self.progress_timer_2.start()
 
-        self.progress_timer_3 = TimerHandler.get_timer_by_list(self.progressBar_3, [2300, 4400, 5100, 2000, 1200])
+        self.progress_timer_3 = TimerHandler.get_timer_by_list(self.progressBar_3, server[2])
         self.progress_timer_3.start()
 
     def download(self):
@@ -362,21 +360,26 @@ class Ui_MainWindow(object):
         item = self.tableWidget.item(4, 1)
         item.setText(_translate("MainWindow", "4min", None))
         self.tableWidget.setSortingEnabled(__sortingEnabled)
-        self.textBrowser.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Gulim\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
-"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:11pt;\">MENU</span></p></body></html>", None))
+        self.textBrowser.setHtml(_translate("MainWindow",
+                                            "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+                                            "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+                                            "p, li { white-space: pre-wrap; }\n"
+                                            "</style></head><body style=\" font-family:\'Gulim\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
+                                            "<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:11pt;\">MENU</span></p></body></html>",
+                                            None))
         self.pushButton.setText(_translate("MainWindow", "Order", None))
-        self.textBrowser_2.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Gulim\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
-"<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt;\">Progress Bar</span></p></body></html>", None))
+        self.textBrowser_2.setHtml(_translate("MainWindow",
+                                              "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+                                              "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+                                              "p, li { white-space: pre-wrap; }\n"
+                                              "</style></head><body style=\" font-family:\'Gulim\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
+                                              "<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt;\">Progress Bar</span></p></body></html>",
+                                              None))
 
 
 if __name__ == "__main__":
     import sys
+
     app = QtGui.QApplication(sys.argv)
     MainWindow = QtGui.QMainWindow()
     ui = Ui_MainWindow()
