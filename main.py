@@ -65,48 +65,42 @@ def WhoIsServerWhenZero():
 
 def DistributeOrder():
     tempOrder = orderQueue[0];
-    sumOfCost = server[0][0] + server[1][0] + server[2][0];
-    print(sumOfCost)
-
+    #sumOfCost = server[0][0] + server[1][0] + server[2][0];
+    print("tempOrder.totalOfOrder", tempOrder.totalOfOrder)
     for i in range(0, tempOrder.totalOfOrder):
         idx = WhoIsServerWhenZero()
 
-        if (tempOrder.Americano != 0):
-            server[idx].append(2000)
-            server[idx][0] += 2000
-            print(server[idx])
-            ui.startProgress()
-            tempOrder.Americano -= 1
-            continue
-
-        if (tempOrder.CaffeLatte != 0):
-            server[idx].append(3000)
-            server[idx][0] += 3000
-            print(server[idx])
-            tempOrder.CaffeLatte -= 1
-            continue
-
-        if (tempOrder.Cappuccino != 0):
-            server[idx].append(4000)
-            server[idx][0] += 4000
-            print(server[idx])
-            tempOrder.Cappuccino -= 1
+        if (tempOrder.CaramelMacchiato != 0):
+            server[idx].append(6000)
+            server[idx][0] += 6000
+            tempOrder.CaramelMacchiato -= 1
             continue
 
         if (tempOrder.CaffeMocha != 0):
             server[idx].append(5000)
             server[idx][0] += 5000
-            print(server[idx])
             tempOrder.CaffeMocha -= 1
             continue
 
-        if (tempOrder.CaramelMacchiato != 0):
-            server[idx].append(6000)
-            server[idx][0] += 6000
-            print(server[idx])
-            tempOrder.CaramelMacchiato -= 1
+        if (tempOrder.Cappuccino != 0):
+            server[idx].append(4000)
+            server[idx][0] += 4000
+            tempOrder.Cappuccino -= 1
             continue
 
+        if (tempOrder.CaffeLatte != 0):
+            server[idx].append(3000)
+            server[idx][0] += 3000
+            tempOrder.CaffeLatte -= 1
+            continue
+
+        if (tempOrder.Americano != 0):
+            server[idx].append(2000)
+            server[idx][0] += 2000
+            tempOrder.Americano -= 1
+            continue
+
+    ui.startProgress()
     orderQueue.pop()
 
 
@@ -281,14 +275,23 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def startProgress(self):
-        self.progress_timer_1 = TimerHandler.get_timer_by_list(self.progressBar_1, server[0])
-        self.progress_timer_1.start()
+        if(len(server[0][1:len(server[0])]) != 0):
+            self.progress_timer_1 = TimerHandler.get_timer_by_list(self.progressBar_1, server[0][1:len(server[0])])
+            self.progress_timer_1.start()
+            server[0][0] -= server[0][1]
+            server[0].pop(1)
 
-        self.progress_timer_2 = TimerHandler.get_timer_by_list(self.progressBar_2, server[1])
-        self.progress_timer_2.start()
+        if (len(server[1][1:len(server[1])]) != 0):
+            self.progress_timer_2 = TimerHandler.get_timer_by_list(self.progressBar_2, server[1][1:len(server[1])])
+            self.progress_timer_2.start()
+            server[1][0] -= server[1][1]
+            server[1].pop(1)
 
-        self.progress_timer_3 = TimerHandler.get_timer_by_list(self.progressBar_3, server[2])
-        self.progress_timer_3.start()
+        if (len(server[2][1:len(server[2])]) != 0):
+            self.progress_timer_3 = TimerHandler.get_timer_by_list(self.progressBar_3, server[2][1:len(server[2])])
+            self.progress_timer_3.start()
+            server[2][0] -= server[2][1]
+            server[2].pop(1)
 
     def download(self):
         self.completed = 0
