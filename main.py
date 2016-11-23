@@ -128,6 +128,7 @@ class TimerHandler:
             self.progress_bar.setProperty("value", self.progress_cnt)
 
             if self.progress_cnt >= 100:
+                print("이 부분에서 프로그레스 바가 100이 되는걸 알 수 있네 ? ")
                 self.timer.stop()
                 self.end()
 
