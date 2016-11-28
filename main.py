@@ -65,41 +65,51 @@ def WhoIsServerWhenZero():
 
 def DistributeOrder():
     tempOrder = orderQueue[0];
+    newServer= [[],[],[]]
 
     for i in range(0, tempOrder.totalOfOrder):
         idx = WhoIsServerWhenZero()
 
         if (tempOrder.CaramelMacchiato != 0):
             server[idx].append(6000)
+            newServer[idx].append(6000)
             server[idx][0] += 6000
             tempOrder.CaramelMacchiato -= 1
             continue
 
         if (tempOrder.CaffeMocha != 0):
             server[idx].append(5000)
+            newServer[idx].append(5000)
             server[idx][0] += 5000
             tempOrder.CaffeMocha -= 1
             continue
 
         if (tempOrder.Cappuccino != 0):
             server[idx].append(4000)
+            newServer[idx].append(4000)
             server[idx][0] += 4000
             tempOrder.Cappuccino -= 1
             continue
 
         if (tempOrder.CaffeLatte != 0):
             server[idx].append(3000)
+            newServer[idx].append(3000)
             server[idx][0] += 3000
             tempOrder.CaffeLatte -= 1
             continue
 
         if (tempOrder.Americano != 0):
             server[idx].append(2000)
+            newServer[idx].append(2000)
             server[idx][0] += 2000
             tempOrder.Americano -= 1
             continue
 
-    ui.startProgress()
+    ui.lcdNumber_1.setProperty("value", server[0][0]/1000)
+    ui.lcdNumber_2.setProperty("value", server[1][0]/1000)
+    ui.lcdNumber_3.setProperty("value", server[2][0]/1000)
+    
+    ui.startProgress(newServer)
     orderQueue.pop()
 
 
@@ -129,6 +139,12 @@ class TimerHandler:
             self.progress_bar.setProperty("value", self.progress_cnt)
 
             if self.progress_cnt >= 100:
+                server[self.num][0] -= server[self.num][1]
+                server[self.num].pop(1)
+                ui.lcdNumber_1.setProperty("value", server[0][0]/1000)
+                ui.lcdNumber_2.setProperty("value", server[1][0]/1000)
+                ui.lcdNumber_3.setProperty("value", server[2][0]/1000)
+
                 self.timer.stop()
                 self.end()
 
@@ -306,21 +322,19 @@ class Ui_MainWindow(object):
         self.progress_timer_2 = None
         self.progress_timer_3 = None
 
-    def startProgress(self):
+    def startProgress(self, newServer):
         print(server)
-        if(len(server[0][1:len(server[0])]) != 0):
-            temp_timer = TimerHandler.get_timer_by_list(self.progressBar_1, server[0][1:len(server[0])], 0)
+        if(len(newServer[0]) != 0):
+            temp_timer = TimerHandler.get_timer_by_list(self.progressBar_1, newServer[0][0:len(newServer[0])], 0)
 
             if(self.progress_timer_1 == None or self.progress_timer_1.get_end_tag()== True):
                 self.progress_timer_1 = temp_timer
                 self.progress_timer_1.start()
             else:
                 self.progress_timer_1.enroll_last(temp_timer)
-            server[0][0] -= server[0][1]
-            server[0].pop(1)
 
-        if (len(server[1][1:len(server[1])]) != 0):
-            temp_timer = TimerHandler.get_timer_by_list(self.progressBar_2, server[1][1:len(server[1])], 1)
+        if (len(newServer[1]) != 0):
+            temp_timer = TimerHandler.get_timer_by_list(self.progressBar_2, newServer[1][0:len(newServer[1])], 1)
 
             if(self.progress_timer_2 == None or self.progress_timer_2.get_end_tag() == True):
                 self.progress_timer_2 = temp_timer
@@ -328,20 +342,14 @@ class Ui_MainWindow(object):
             else:
                 self.progress_timer_2.enroll_last(temp_timer)
 
-            server[1][0] -= server[1][1]
-            server[1].pop(1)
-
-        if (len(server[2][1:len(server[2])]) != 0):
-            temp_timer = TimerHandler.get_timer_by_list(self.progressBar_3, server[2][1:len(server[2])], 2)
+        if (len(newServer[2]) != 0):
+            temp_timer = TimerHandler.get_timer_by_list(self.progressBar_3, newServer[2][0:len(newServer[2])], 2)
 
             if(self.progress_timer_3 == None or self.progress_timer_3.get_end_tag()== True):
                 self.progress_timer_3 = temp_timer
                 self.progress_timer_3.start()
             else:
                 self.progress_timer_3.enroll_last(temp_timer)
-
-            server[2][0] -= server[2][1]
-            server[2].pop(1)
 
     def spinBoxValue(self):
         order = Order()
@@ -386,25 +394,25 @@ class Ui_MainWindow(object):
         __sortingEnabled = self.tableWidget.isSortingEnabled()
         self.tableWidget.setSortingEnabled(False)
         item = self.tableWidget.item(0, 0)
-        item.setText(_translate("MainWindow", "3500", None))
+        item.setText(_translate("MainWindow", "3500\\", None))
         item = self.tableWidget.item(0, 1)
-        item.setText(_translate("MainWindow", "2min", None))
+        item.setText(_translate("MainWindow", "2sec", None))
         item = self.tableWidget.item(1, 0)
-        item.setText(_translate("MainWindow", "4000", None))
+        item.setText(_translate("MainWindow", "4000\\", None))
         item = self.tableWidget.item(1, 1)
-        item.setText(_translate("MainWindow", "2.5min", None))
+        item.setText(_translate("MainWindow", "3sec", None))
         item = self.tableWidget.item(2, 0)
-        item.setText(_translate("MainWindow", "4000", None))
+        item.setText(_translate("MainWindow", "4000\\", None))
         item = self.tableWidget.item(2, 1)
-        item.setText(_translate("MainWindow", "2.5min", None))
+        item.setText(_translate("MainWindow", "4sec", None))
         item = self.tableWidget.item(3, 0)
-        item.setText(_translate("MainWindow", "4500", None))
+        item.setText(_translate("MainWindow", "4500\\", None))
         item = self.tableWidget.item(3, 1)
-        item.setText(_translate("MainWindow", "3min", None))
+        item.setText(_translate("MainWindow", "5sec", None))
         item = self.tableWidget.item(4, 0)
-        item.setText(_translate("MainWindow", "5000", None))
+        item.setText(_translate("MainWindow", "5000\\", None))
         item = self.tableWidget.item(4, 1)
-        item.setText(_translate("MainWindow", "4min", None))
+        item.setText(_translate("MainWindow", "6sec", None))
         self.tableWidget.setSortingEnabled(__sortingEnabled)
         self.textBrowser.setHtml(_translate("MainWindow",
                                             "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
