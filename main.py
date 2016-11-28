@@ -110,7 +110,7 @@ class TimerHandler:
         post_timer = first_timer
         for i in range(1, len(time_list)):
             temp = TimerHandler(progress_bar, time_list[i], num)
-            post_timer.enroll_end_callback(temp.start)
+            post_timer.enroll(temp)
             post_timer = temp
 
         return first_timer
@@ -120,15 +120,15 @@ class TimerHandler:
         self.progress_bar = progress_bar
         self.progress_cnt = 0
         self.tick_time = full_time / 1000;
-        self.end_callback = None
         self.num = num
+        self.enrolled_timer = None
+        self.end_tag = False
 
         def timer_callback():
             self.progress_cnt += 0.1
             self.progress_bar.setProperty("value", self.progress_cnt)
 
             if self.progress_cnt >= 100:
-                print(self. num)
                 self.timer.stop()
                 self.end()
 
@@ -137,13 +137,26 @@ class TimerHandler:
     def start(self):
         self.timer.start(self.tick_time)
 
-    def enroll_end_callback(self, callback):
-        self.end_callback = callback
+    def enroll(self, timer):
+        self.enrolled_timer = timer
+
+    def enroll_last(self, timer):
+        if self.enrolled_timer is None:
+            self.enrolled_timer = timer
+            return
+
+        now_timer = self.enrolled_timer
+
+        while now_timer.enrolled_timer is not None:
+            now_timer = now_timer.enrolled_timer
+
+        now_timer.enrolled_timer = timer
 
     def end(self):
         self.progress_bar.setProperty("value", 0)
-        if self.end_callback is not None:
-            self.end_callback()
+        if self.enrolled_timer is not None:
+            self.enrolled_timer.start()
+        self.end_tag = True
 
     def getProgressCnt(self):
         return self.progress_cnt
@@ -278,35 +291,46 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-    def startProgress(self):
-        if(len(server[0][1:len(server[0])]) != 0):
-            self.progress_timer_1 = TimerHandler.get_timer_by_list(self.progressBar_1, server[0][1:len(server[0])], 0)
-            self.progress_timer_1.serverNum = 0;
-            self.progress_timer_1.start()
+        self.progress_timer_1 = None
+        self.progress_timer_2 = None
+        self.progress_timer_3 = None
 
+    def startProgress(self):
+        print(server)
+        if(len(server[0][1:len(server[0])]) != 0):
+            temp_timer = TimerHandler.get_timer_by_list(self.progressBar_1, server[0][1:len(server[0])], 0)
+
+            if(self.progress_timer_1 == None or self.progress_timer_1.end_tag == True):
+                self.progress_timer_1 = temp_timer
+                self.progress_timer_1.start()
+            else:
+                self.progress_timer_1.enroll_last(temp_timer)
             server[0][0] -= server[0][1]
             server[0].pop(1)
 
         if (len(server[1][1:len(server[1])]) != 0):
-            self.progress_timer_2 = TimerHandler.get_timer_by_list(self.progressBar_2, server[1][1:len(server[1])], 1)
-            self.progress_timer_2.serverNum = 1;
-            self.progress_timer_2.start()
+            temp_timer = TimerHandler.get_timer_by_list(self.progressBar_2, server[1][1:len(server[1])], 1)
+
+            if(self.progress_timer_2 == None or self.progress_timer_2.end_tag == True):
+                self.progress_timer_2 = temp_timer
+                self.progress_timer_2.start()
+            else:
+                self.progress_timer_2.enroll_last(temp_timer)
+
             server[1][0] -= server[1][1]
             server[1].pop(1)
 
         if (len(server[2][1:len(server[2])]) != 0):
-            self.progress_timer_3 = TimerHandler.get_timer_by_list(self.progressBar_3, server[2][1:len(server[2])], 2)
-            self.progress_timer_3.serverNum = 2;
-            self.progress_timer_3.start()
+            temp_timer = TimerHandler.get_timer_by_list(self.progressBar_3, server[2][1:len(server[2])], 2)
+
+            if(self.progress_timer_3 == None or self.progress_timer_3.end_tag == True):
+                self.progress_timer_3 = temp_timer
+                self.progress_timer_3.start()
+            else:
+                self.progress_timer_3.enroll_last(temp_timer)
+
             server[2][0] -= server[2][1]
             server[2].pop(1)
-
-    def download(self):
-        self.completed = 0
-
-        while (self.completed < 100):
-            self.completed += 0.0001
-            self.progress.setValue(self.completed)
 
     def spinBoxValue(self):
         order = Order()
