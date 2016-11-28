@@ -158,6 +158,17 @@ class TimerHandler:
             self.enrolled_timer.start()
         self.end_tag = True
 
+    def get_end_tag(self):
+        if self.enrolled_timer is None:
+            return self.end_tag
+
+        now_timer = self.enrolled_timer
+
+        while now_timer.enrolled_timer is not None:
+            now_timer = now_timer.enrolled_timer
+
+        return self.end_tag
+
     def getProgressCnt(self):
         return self.progress_cnt
 
@@ -300,7 +311,7 @@ class Ui_MainWindow(object):
         if(len(server[0][1:len(server[0])]) != 0):
             temp_timer = TimerHandler.get_timer_by_list(self.progressBar_1, server[0][1:len(server[0])], 0)
 
-            if(self.progress_timer_1 == None or self.progress_timer_1.end_tag == True):
+            if(self.progress_timer_1 == None or self.progress_timer_1.get_end_tag()== True):
                 self.progress_timer_1 = temp_timer
                 self.progress_timer_1.start()
             else:
@@ -311,7 +322,7 @@ class Ui_MainWindow(object):
         if (len(server[1][1:len(server[1])]) != 0):
             temp_timer = TimerHandler.get_timer_by_list(self.progressBar_2, server[1][1:len(server[1])], 1)
 
-            if(self.progress_timer_2 == None or self.progress_timer_2.end_tag == True):
+            if(self.progress_timer_2 == None or self.progress_timer_2.get_end_tag() == True):
                 self.progress_timer_2 = temp_timer
                 self.progress_timer_2.start()
             else:
@@ -323,7 +334,7 @@ class Ui_MainWindow(object):
         if (len(server[2][1:len(server[2])]) != 0):
             temp_timer = TimerHandler.get_timer_by_list(self.progressBar_3, server[2][1:len(server[2])], 2)
 
-            if(self.progress_timer_3 == None or self.progress_timer_3.end_tag == True):
+            if(self.progress_timer_3 == None or self.progress_timer_3.get_end_tag()== True):
                 self.progress_timer_3 = temp_timer
                 self.progress_timer_3.start()
             else:
