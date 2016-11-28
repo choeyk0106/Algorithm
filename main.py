@@ -65,8 +65,7 @@ def WhoIsServerWhenZero():
 
 def DistributeOrder():
     tempOrder = orderQueue[0];
-    #sumOfCost = server[0][0] + server[1][0] + server[2][0];
-    print("tempOrder.totalOfOrder", tempOrder.totalOfOrder)
+
     for i in range(0, tempOrder.totalOfOrder):
         idx = WhoIsServerWhenZero()
 
@@ -106,29 +105,30 @@ def DistributeOrder():
 
 class TimerHandler:
     @staticmethod
-    def get_timer_by_list(progress_bar, time_list):
-        first_timer = TimerHandler(progress_bar, time_list[0])
+    def get_timer_by_list(progress_bar, time_list, num):
+        first_timer = TimerHandler(progress_bar, time_list[0], num)
         post_timer = first_timer
         for i in range(1, len(time_list)):
-            temp = TimerHandler(progress_bar, time_list[i])
+            temp = TimerHandler(progress_bar, time_list[i], num)
             post_timer.enroll_end_callback(temp.start)
             post_timer = temp
 
         return first_timer
 
-    def __init__(self, progress_bar, full_time):
+    def __init__(self, progress_bar, full_time, num):
         self.timer = QTimer()
         self.progress_bar = progress_bar
         self.progress_cnt = 0
         self.tick_time = full_time / 1000;
         self.end_callback = None
+        self.num = num
 
         def timer_callback():
             self.progress_cnt += 0.1
             self.progress_bar.setProperty("value", self.progress_cnt)
 
             if self.progress_cnt >= 100:
-                print("이 부분에서 프로그레스 바가 100이 되는걸 알 수 있네 ? ")
+                print(self. num)
                 self.timer.stop()
                 self.end()
 
@@ -144,6 +144,9 @@ class TimerHandler:
         self.progress_bar.setProperty("value", 0)
         if self.end_callback is not None:
             self.end_callback()
+
+    def getProgressCnt(self):
+        return self.progress_cnt
 
 
 class Ui_MainWindow(object):
@@ -277,19 +280,23 @@ class Ui_MainWindow(object):
 
     def startProgress(self):
         if(len(server[0][1:len(server[0])]) != 0):
-            self.progress_timer_1 = TimerHandler.get_timer_by_list(self.progressBar_1, server[0][1:len(server[0])])
+            self.progress_timer_1 = TimerHandler.get_timer_by_list(self.progressBar_1, server[0][1:len(server[0])], 0)
+            self.progress_timer_1.serverNum = 0;
             self.progress_timer_1.start()
+
             server[0][0] -= server[0][1]
             server[0].pop(1)
 
         if (len(server[1][1:len(server[1])]) != 0):
-            self.progress_timer_2 = TimerHandler.get_timer_by_list(self.progressBar_2, server[1][1:len(server[1])])
+            self.progress_timer_2 = TimerHandler.get_timer_by_list(self.progressBar_2, server[1][1:len(server[1])], 1)
+            self.progress_timer_2.serverNum = 1;
             self.progress_timer_2.start()
             server[1][0] -= server[1][1]
             server[1].pop(1)
 
         if (len(server[2][1:len(server[2])]) != 0):
-            self.progress_timer_3 = TimerHandler.get_timer_by_list(self.progressBar_3, server[2][1:len(server[2])])
+            self.progress_timer_3 = TimerHandler.get_timer_by_list(self.progressBar_3, server[2][1:len(server[2])], 2)
+            self.progress_timer_3.serverNum = 2;
             self.progress_timer_3.start()
             server[2][0] -= server[2][1]
             server[2].pop(1)
