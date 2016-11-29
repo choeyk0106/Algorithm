@@ -7,6 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import *
+from queue import Queue
 import threading, time, random
 
 orderQueue = list();
@@ -31,11 +32,6 @@ except AttributeError:
 
 
 class Order:
-    Americano = 0
-    CaffeLatte = 0
-    Cappuccino = 0
-    CaffeMocha = 0
-    CaramelMacchiato = 0
     beverage = [0,0,0,0,0]
     beverageCost = [2000, 3000, 4000, 5000, 6000]
 
@@ -120,80 +116,68 @@ def DistributeOrder():
     orderQueue.pop()
 
 
-class TimerHandler:
-    @staticmethod
-    def get_timer_by_list(progress_bar, time_list, num):
-        first_timer = TimerHandler(progress_bar, time_list[0], num)
-        post_timer = first_timer
-        for i in range(1, len(time_list)):
-            temp = TimerHandler(progress_bar, time_list[i], num)
-            post_timer.enroll(temp)
-            post_timer = temp
-
-        return first_timer
-
-    def __init__(self, progress_bar, full_time, num):
+class Timer:
+    def __init__(self, full_time, timer_callback):
         self.timer = QTimer()
-        self.progress_bar = progress_bar
-        self.progress_cnt = 0
         self.tick_time = full_time / 1000;
-        self.num = num
-        self.enrolled_timer = None
-        self.end_tag = False
-
-        def timer_callback():
-            self.progress_cnt += 0.1
-            self.progress_bar.setProperty("value", self.progress_cnt)
-
-            if self.progress_cnt >= 100:
-                server[self.num][0] -= server[self.num][1]
-                server[self.num].pop(1)
-                ui.lcdNumber_1.setProperty("value", server[0][0] / 1000)
-                ui.lcdNumber_2.setProperty("value", server[1][0] / 1000)
-                ui.lcdNumber_3.setProperty("value", server[2][0] / 1000)
-
-                self.timer.stop()
-                self.end()
-
         self.timer.timeout.connect(timer_callback)
 
     def start(self):
         self.timer.start(self.tick_time)
 
-    def enroll(self, timer):
-        self.enrolled_timer = timer
+class TimerHandler:
+    def __init__(self, progress_bar, handler_num):
+        self.progress_cnt = 0
+        self.progress_bar = progress_bar
+        self.now_timer = None
+        self.handler_num = handler_num
+        self.queue = Queue()
+        self.run_flag = False
 
-    def enroll_last(self, timer):
-        if self.enrolled_timer is None:
-            self.enrolled_timer = timer
-            return
+    def start(self):
+        if self.now_timer is None or self.run_flag:
+            return None
+        elif not self.run_flag:
+            self.now_timer.start()
+            self.run_flag = True
 
-        now_timer = self.enrolled_timer
+    def timer_callback(self):
+        self.progress_cnt += 0.1
+        self.progress_bar.setProperty("value", self.progress_cnt)
 
-        while now_timer.enrolled_timer is not None:
-            now_timer = now_timer.enrolled_timer
+        if self.progress_cnt >= 100:
+            server[self.handler_num][0] -= server[self.handler_num][1]
+            server[self.handler_num].pop(1)
+            ui.lcdNumber_1.setProperty("value", server[0][0] / 1000)
+            ui.lcdNumber_2.setProperty("value", server[1][0] / 1000)
+            ui.lcdNumber_3.setProperty("value", server[2][0] / 1000)
 
-        now_timer.enrolled_timer = timer
+            self.end()
+
+    def push_back(self, full_time_list):
+        print(full_time_list)
+        for full_time in full_time_list:
+            if self.now_timer is None:
+                print(1)
+                self.now_timer = Timer(full_time, self.timer_callback)
+            else:
+                print(2)
+                self.queue.put(Timer(full_time, self.timer_callback))
 
     def end(self):
-        self.progress_bar.setProperty("value", 0)
-        if self.enrolled_timer is not None:
-            self.enrolled_timer.start()
-        self.end_tag = True
+        self.progress_cnt = 0
+        self.progress_bar.setProperty("value", self.progress_cnt)
 
-    def get_end_tag(self):
-        if self.enrolled_timer is None:
-            return self.end_tag
+        if self.queue.qsize() == 0:
+            self.now_timer = None
+            self.run_flag = False
+        else:
+            self.now_timer = self.queue.get()
+            self.now_timer.start()
 
-        now_timer = self.enrolled_timer
-
-        while now_timer.enrolled_timer is not None:
-            now_timer = now_timer.enrolled_timer
-
-        return self.end_tag
-
-    def getProgressCnt(self):
+    def get_progress_cnt(self):
         return self.progress_cnt
+
 
 
 class Ui_MainWindow(object):
@@ -325,56 +309,31 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-        self.progress_timer_1 = None
-        self.progress_timer_2 = None
-        self.progress_timer_3 = None
+        self.progress_timer_1 = TimerHandler(self.progressBar_1, 0)
+        self.progress_timer_2 = TimerHandler(self.progressBar_2, 1)
+        self.progress_timer_3 = TimerHandler(self.progressBar_3, 2)
 
     def startProgress(self, newServer):
         print(newServer)
         if (len(newServer[0]) != 0):
-            temp_timer = TimerHandler.get_timer_by_list(self.progressBar_1, newServer[0][0:len(newServer[0])], 0)
-
-            if (self.progress_timer_1 == None or self.progress_timer_1.get_end_tag() == True):
-                self.progress_timer_1 = temp_timer
-                self.progress_timer_1.start()
-            else:
-                self.progress_timer_1.enroll_last(temp_timer)
+            self.progress_timer_1.push_back(newServer[0][0:len(newServer[0])])
+            self.progress_timer_1.start()
 
         if (len(newServer[1]) != 0):
-            temp_timer = TimerHandler.get_timer_by_list(self.progressBar_2, newServer[1][0:len(newServer[1])], 1)
-
-            if (self.progress_timer_2 == None or self.progress_timer_2.get_end_tag() == True):
-                self.progress_timer_2 = temp_timer
-                self.progress_timer_2.start()
-            else:
-                self.progress_timer_2.enroll_last(temp_timer)
+            self.progress_timer_2.push_back(newServer[1][0:len(newServer[1])])
+            self.progress_timer_2.start()
 
         if (len(newServer[2]) != 0):
-            temp_timer = TimerHandler.get_timer_by_list(self.progressBar_3, newServer[2][0:len(newServer[2])], 2)
-
-            if (self.progress_timer_3 == None or self.progress_timer_3.get_end_tag() == True):
-                self.progress_timer_3 = temp_timer
-                self.progress_timer_3.start()
-            else:
-                self.progress_timer_3.enroll_last(temp_timer)
+            self.progress_timer_3.push_back(newServer[2][0:len(newServer[2])])
+            self.progress_timer_3.start()
 
     def spinBoxValue(self):
         order = Order()
-        # order.Americano = self.spinBox.value()
-        # order.CaffeLatte = self.spinBox_2.value()
-        # order.Cappuccino = self.spinBox_3.value()
-        # order.CaffeMocha = self.spinBox_4.value()
-        # order.CaramelMacchiato = self.spinBox_5.value()
         order.beverage[0] = self.spinBox.value()
         order.beverage[1] = self.spinBox_2.value()
         order.beverage[2] = self.spinBox_3.value()
         order.beverage[3] = self.spinBox_4.value()
         order.beverage[4] = self.spinBox_5.value()
-        print("아메리카노", order.Americano, "개")
-        print("카페라떼", order.CaffeLatte, "개")
-        print("카푸치노", order.Cappuccino, "개")
-        print("카페모카", order.CaffeMocha, "개")
-        print("카라멜마뀌아로~", order.CaramelMacchiato, "개")
         self.spinBox.setProperty("value", 0)
         self.spinBox_2.setProperty("value", 0)
         self.spinBox_3.setProperty("value", 0)
