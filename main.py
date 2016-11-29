@@ -11,7 +11,7 @@ import threading, time, random
 
 orderQueue = list();
 
-server = [[0],[0],[0]]
+server = [[0], [0], [0]]
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -36,27 +36,34 @@ class Order:
     Cappuccino = 0
     CaffeMocha = 0
     CaramelMacchiato = 0
+    beverage = [0,0,0,0,0]
+    beverageCost = [2000, 3000, 4000, 5000, 6000]
 
     totalOfOrder = 0
-    OrderNumber = 0
 
-    def SetTotalOrder(self):
-        self.totalOfOrder = self.Americano + self.CaffeLatte + self.Cappuccino + self.CaffeMocha + self.CaramelMacchiato
+    def  SetTotalOrder(self):
+        self.totalOfOrder = self.beverage[0] + self.beverage[1] + self.beverage[2] + self.beverage[3] + self.beverage[4]
 
 
-def WhoIsServerWhenZero():
-    minCost = 9999
+def WhoIsServerWhenZero(tempOrder):
+    minCost = 987654321
     minServer = -1
     maxCost = -1
     maxServer = -1
+    beverCost = -1
+
+    for i in range(0, 5):
+        if tempOrder.beverage[4-i] != 0 :
+            beverCost = tempOrder.beverageCost[4-i]
+            break
 
     for i in range(0, 3):
-        if (maxCost < server[i][0]):
+        if maxCost < server[i][0] :
             maxCost = server[i][0]
             maxServer = i
 
     for i in range(0, 3):
-        if (minCost > server[i][0] and i != maxServer):
+        if minCost > server[i][0] and server[i][0] + beverCost <= server[maxServer][0] :
             minCost = server[i][0]
             minServer = i
 
@@ -65,50 +72,50 @@ def WhoIsServerWhenZero():
 
 def DistributeOrder():
     tempOrder = orderQueue[0];
-    newServer= [[],[],[]]
+    newServer = [[], [], []]
 
     for i in range(0, tempOrder.totalOfOrder):
-        idx = WhoIsServerWhenZero()
+        idx = WhoIsServerWhenZero(tempOrder)
 
-        if (tempOrder.CaramelMacchiato != 0):
-            server[idx].append(6000)
-            newServer[idx].append(6000)
-            server[idx][0] += 6000
-            tempOrder.CaramelMacchiato -= 1
+        if (tempOrder.beverage[4] != 0):
+            server[idx].append(tempOrder.beverageCost[4])
+            newServer[idx].append(tempOrder.beverageCost[4])
+            server[idx][0] += tempOrder.beverageCost[4]
+            tempOrder.beverage[4] -= 1
             continue
 
-        if (tempOrder.CaffeMocha != 0):
-            server[idx].append(5000)
-            newServer[idx].append(5000)
-            server[idx][0] += 5000
-            tempOrder.CaffeMocha -= 1
+        if (tempOrder.beverage[3] != 0):
+            server[idx].append(tempOrder.beverageCost[3])
+            newServer[idx].append(tempOrder.beverageCost[3])
+            server[idx][0] += tempOrder.beverageCost[3]
+            tempOrder.beverage[3] -= 1
             continue
 
-        if (tempOrder.Cappuccino != 0):
+        if (tempOrder.beverage[2] != 0):
             server[idx].append(4000)
             newServer[idx].append(4000)
-            server[idx][0] += 4000
-            tempOrder.Cappuccino -= 1
+            server[idx][0] += tempOrder.beverageCost[2]
+            tempOrder.beverage[2] -= 1
             continue
 
-        if (tempOrder.CaffeLatte != 0):
+        if (tempOrder.beverage[1] != 0):
             server[idx].append(3000)
             newServer[idx].append(3000)
-            server[idx][0] += 3000
-            tempOrder.CaffeLatte -= 1
+            server[idx][0] += tempOrder.beverageCost[1]
+            tempOrder.beverage[1] -= 1
             continue
 
-        if (tempOrder.Americano != 0):
+        if (tempOrder.beverage[0] != 0):
             server[idx].append(2000)
             newServer[idx].append(2000)
-            server[idx][0] += 2000
-            tempOrder.Americano -= 1
+            server[idx][0] += tempOrder.beverageCost[0]
+            tempOrder.beverage[0] -= 1
             continue
 
-    ui.lcdNumber_1.setProperty("value", server[0][0]/1000)
-    ui.lcdNumber_2.setProperty("value", server[1][0]/1000)
-    ui.lcdNumber_3.setProperty("value", server[2][0]/1000)
-    
+    ui.lcdNumber_1.setProperty("value", server[0][0] / 1000)
+    ui.lcdNumber_2.setProperty("value", server[1][0] / 1000)
+    ui.lcdNumber_3.setProperty("value", server[2][0] / 1000)
+
     ui.startProgress(newServer)
     orderQueue.pop()
 
@@ -141,9 +148,9 @@ class TimerHandler:
             if self.progress_cnt >= 100:
                 server[self.num][0] -= server[self.num][1]
                 server[self.num].pop(1)
-                ui.lcdNumber_1.setProperty("value", server[0][0]/1000)
-                ui.lcdNumber_2.setProperty("value", server[1][0]/1000)
-                ui.lcdNumber_3.setProperty("value", server[2][0]/1000)
+                ui.lcdNumber_1.setProperty("value", server[0][0] / 1000)
+                ui.lcdNumber_2.setProperty("value", server[1][0] / 1000)
+                ui.lcdNumber_3.setProperty("value", server[2][0] / 1000)
 
                 self.timer.stop()
                 self.end()
@@ -323,11 +330,11 @@ class Ui_MainWindow(object):
         self.progress_timer_3 = None
 
     def startProgress(self, newServer):
-        print(server)
-        if(len(newServer[0]) != 0):
+        print(newServer)
+        if (len(newServer[0]) != 0):
             temp_timer = TimerHandler.get_timer_by_list(self.progressBar_1, newServer[0][0:len(newServer[0])], 0)
 
-            if(self.progress_timer_1 == None or self.progress_timer_1.get_end_tag()== True):
+            if (self.progress_timer_1 == None or self.progress_timer_1.get_end_tag() == True):
                 self.progress_timer_1 = temp_timer
                 self.progress_timer_1.start()
             else:
@@ -336,7 +343,7 @@ class Ui_MainWindow(object):
         if (len(newServer[1]) != 0):
             temp_timer = TimerHandler.get_timer_by_list(self.progressBar_2, newServer[1][0:len(newServer[1])], 1)
 
-            if(self.progress_timer_2 == None or self.progress_timer_2.get_end_tag() == True):
+            if (self.progress_timer_2 == None or self.progress_timer_2.get_end_tag() == True):
                 self.progress_timer_2 = temp_timer
                 self.progress_timer_2.start()
             else:
@@ -345,7 +352,7 @@ class Ui_MainWindow(object):
         if (len(newServer[2]) != 0):
             temp_timer = TimerHandler.get_timer_by_list(self.progressBar_3, newServer[2][0:len(newServer[2])], 2)
 
-            if(self.progress_timer_3 == None or self.progress_timer_3.get_end_tag()== True):
+            if (self.progress_timer_3 == None or self.progress_timer_3.get_end_tag() == True):
                 self.progress_timer_3 = temp_timer
                 self.progress_timer_3.start()
             else:
@@ -353,11 +360,16 @@ class Ui_MainWindow(object):
 
     def spinBoxValue(self):
         order = Order()
-        order.Americano = self.spinBox.value()
-        order.CaffeLatte = self.spinBox_2.value()
-        order.Cappuccino = self.spinBox_3.value()
-        order.CaffeMocha = self.spinBox_4.value()
-        order.CaramelMacchiato = self.spinBox_5.value()
+        # order.Americano = self.spinBox.value()
+        # order.CaffeLatte = self.spinBox_2.value()
+        # order.Cappuccino = self.spinBox_3.value()
+        # order.CaffeMocha = self.spinBox_4.value()
+        # order.CaramelMacchiato = self.spinBox_5.value()
+        order.beverage[0] = self.spinBox.value()
+        order.beverage[1] = self.spinBox_2.value()
+        order.beverage[2] = self.spinBox_3.value()
+        order.beverage[3] = self.spinBox_4.value()
+        order.beverage[4] = self.spinBox_5.value()
         print("아메리카노", order.Americano, "개")
         print("카페라떼", order.CaffeLatte, "개")
         print("카푸치노", order.Cappuccino, "개")
@@ -371,6 +383,7 @@ class Ui_MainWindow(object):
 
         order.SetTotalOrder()
         orderQueue.append(order)
+        print(order.beverage)
         DistributeOrder()
 
     def retranslateUi(self, MainWindow):
